@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>European Country Facts</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>European Country Facts</h1>
+
+    <form id="countryForm">
+        <label for="countrySelect">Select a country:</label>
+        <select id="countrySelect" name="country">
+            <option value="Austria">Austria</option>
+            <option value="Belgium">Belgium</option>
+            <option value="Bulgaria">Bulgaria</option>
+            <option value="France">France</option>
+            <option value="Germany">Germany</option>
+            <option value="Greece">Greece</option>
+            <option value="Italy">Italy</option>
+            <option value="Spain">Spain</option>
+            <option value="Sweden">Sweden</option>
+            </select><br><br>
+        <button type="submit">Get Facts</button>
+    </form>
+
+    <div id="results" style="margin-top: 20px;"></div>
+
+    <script>
+        const form = document.getElementById('countryForm');
+        const resultsDiv = document.getElementById('results');
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault(); // Prevent form from actually submitting
+
+            const selectedCountry = document.getElementById('countrySelect').value;
+
+            fetch('/get_country_facts', {  // Send request to backend
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ country: selectedCountry })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    resultsDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
+                } else {
+                  const table = document.createElement('table');
+                  const headerRow = table.insertRow();
+                  for (const key in data[0]) { // Assuming data is an array of objects
+                    const headerCell = headerRow.insertCell();
+                    headerCell.textContent = key;
+                  }
+
+                  data.forEach(item => {
+                    const row = table.insertRow();
+                    for (const key in item) {
+                      const cell = row.insertCell();
+                      cell.textContent = item[key];
+                    }
+                  });
+                  resultsDiv.innerHTML = ""; // Clear previous results
+                  resultsDiv.appendChild(table);
+                }
+            })
+            .catch(error => {
+                resultsDiv.innerHTML = `<p style="color: red;">An error occurred: ${error}</p>`;
+            });
+        });
+    </script>
+</body>
+</html>
